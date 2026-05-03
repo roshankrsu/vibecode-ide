@@ -6,6 +6,9 @@ import { access } from "fs";
 import { getUserById } from "./modules/auth/actions";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  session: {
+    strategy: "jwt",
+  },
   callbacks: {
     async signIn({ user, account }) {
       const email = user?.email;
