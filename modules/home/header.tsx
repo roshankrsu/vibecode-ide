@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-// import { ThemeToggle } from "@/components/ui/toggle-theme";
 import UserButton from "../auth/components/user-button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -9,7 +8,6 @@ export function Header() {
     <>
       <div className="sticky top-0 left-0 right-0 z-50">
         <div className="bg-white dark:bg-black/5 w-full">
-          {/* Rest of the header content */}
           <div className="flex items-center justify-center w-full flex-col">
             <div
               className={`
@@ -40,33 +38,26 @@ export function Header() {
                       height={40}
                       width={40}
                     />
-
                     <span className="hidden sm:block font-extrabold text-lg">
                       VibeCode IDE
                     </span>
                   </Link>
                   <span className="text-zinc-300 dark:text-zinc-700">|</span>
+
                   {/* Desktop Navigation Links */}
                   <div className="hidden sm:flex items-center gap-4">
                     <Link
-                      href="/docs/components/background-paths"
-                      className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
+                      href="/docs"
+                      className="text-sm text-zinc-600 hover:text-[#7C3AED] dark:text-zinc-400 dark:hover:text-[#a78bfa] transition-colors"
                     >
                       Docs
                     </Link>
-                    {/* <Link
-                                            href="/pricing"
-                                            className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
-                                        >
-                                            Pricing
-                                        </Link> */}
                     <Link
-                      href=""
-                      target="_blank"
-                      className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors flex items-center gap-2"
+                      href="/api-docs"
+                      className="text-sm text-zinc-600 hover:text-[#7C3AED] dark:text-zinc-400 dark:hover:text-[#a78bfa] transition-colors flex items-center gap-2"
                     >
                       API
-                      <span className="text-purple-500 dark:text-purple-400 border border-purple-500 dark:border-purple-400 rounded-lg px-1 py-0.5 text-xs">
+                      <span className="text-[#7C3AED] dark:text-[#a78bfa] border border-[#7C3AED] dark:border-[#a78bfa] rounded-lg px-1 py-0.5 text-xs">
                         New
                       </span>
                     </Link>
@@ -76,22 +67,21 @@ export function Header() {
                 {/* Right side items */}
                 <div className="hidden sm:flex items-center gap-3">
                   <span className="text-zinc-300 dark:text-zinc-700">|</span>
-                  {/* <HeaderPro /> */}
                   <ThemeToggle />
                   <UserButton />
                 </div>
 
-                {/* Mobile Navigation remains unchanged */}
+                {/* Mobile Navigation */}
                 <div className="flex sm:hidden items-center gap-4">
                   <Link
-                    href="/docs/components/action-search-bar"
-                    className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
+                    href="/docs"
+                    className="text-sm text-zinc-600 hover:text-[#7C3AED] dark:text-zinc-400 dark:hover:text-[#a78bfa] transition-colors"
                   >
                     Docs
                   </Link>
                   <Link
-                    href="/pricing"
-                    className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
+                    href="/api-docs"
+                    className="text-sm text-zinc-600 hover:text-[#7C3AED] dark:text-zinc-400 dark:hover:text-[#a78bfa] transition-colors"
                   >
                     API
                   </Link>
