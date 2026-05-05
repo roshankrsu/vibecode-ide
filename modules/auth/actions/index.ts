@@ -26,8 +26,8 @@ export const getAccountByUserId = async(userId:string)=>{
         }
     })
     return account
-   }catch(err){
-     console.log(err)
+   }catch(error){
+     console.log(error)
      return null
    }
 }
