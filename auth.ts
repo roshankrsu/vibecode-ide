@@ -2,7 +2,6 @@ import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "./lib/db";
 import authConfig from "./auth.config";
-import { access } from "fs";
 import { getUserById } from "./modules/auth/actions";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -82,18 +81,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       token.name = existingUser.name;
       token.email = existingUser.email;
       token.role = existingUser.role;
+      token.picture = existingUser.image;
 
-      return token
+      return token;
     },
 
-    async session({session, token}) {
-        if(token.sub && session.user){
-            session.user.id = token.sub
-        }
-        if(token.sub && session.user){
-            session.user.role = token.role
-        }
-        return session;
+    async session({ session, token }) {
+      if (token.sub && session.user) {
+        session.user.id = token.sub;
+      }
+      if (token.sub && session.user) {
+        session.user.role = token.role;
+      }
+      if (token.picture && session.user) {
+        session.user.image = token.picture as string;
+      }
+
+      return session;
     },
   },
   secret: process.env.AUTH_SECRET,
