@@ -9,7 +9,9 @@ import type { TemplateFolder } from "@/modules/playground/libs/path-to-json";
 interface PlaygroundData {
   id: string;
   title?: string;
-  [key: string]: any;
+  name?: string;
+  templateFiles?: { content: string }[];
+  template?: string;
 }
 
 interface UsePlaygroundReturn {
@@ -37,8 +39,7 @@ export const usePlayground = (id: string): UsePlaygroundReturn => {
       setError(null);
 
       const data = await getPlaygroundById(id);
-      //   @ts-ignore
-      setPlaygroundData(data);
+      setPlaygroundData(data as PlaygroundData);
 
       const rawContent = data?.templateFiles?.[0]?.content;
       if (typeof rawContent === "string") {
