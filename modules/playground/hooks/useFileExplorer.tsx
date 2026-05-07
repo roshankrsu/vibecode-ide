@@ -2,9 +2,7 @@ import { create } from "zustand";
 
 import { toast } from "sonner";
 import { TemplateFile, TemplateFolder } from "../libs/path-to-json";
-import { SaveUpdatedCode } from "../actions";
 import { generateFileId } from "../libs/index";
-import { usePlayground } from "./usePlayground";
 
 interface FileExplorerState {
   playgroundId: string;
@@ -473,7 +471,7 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
     }
   },
 
-  updateFileContent: (fileId, content) => {
+  updateFileContent: (fileId: string, content: string): void => {
     set((state) => ({
       openFiles: state.openFiles.map((file) =>
         file.id === fileId

@@ -1,10 +1,8 @@
-interface TemplateItem {
-  filename: string;
-  fileExtension: string;
-  content: string;
-  folderName?: string;
-  items?: TemplateItem[];
-}
+import type {
+  TemplateFolder,
+  TemplateFile,
+  TemplateItem,
+} from "@/modules/playground/libs/path-to-json";
 
 interface WebContainerFile {
   file: {
@@ -23,21 +21,21 @@ type WebContainerFileSystem = Record<
   WebContainerFile | WebContainerDirectory
 >;
 
-export function transformToWebContainerFormat(template: {
-  folderName: string;
-  items: TemplateItem[];
-}): WebContainerFileSystem {
+export function transformToWebContainerFormat(
+  template: TemplateFolder,
+): WebContainerFileSystem {
   function processItem(
     item: TemplateItem,
   ): WebContainerFile | WebContainerDirectory {
-    if (item.folderName && item.items) {
-      // This is a directory
+    if ("folderName" in item) {
+      // This is a TemplateFolder
       const directoryContents: WebContainerFileSystem = {};
 
       item.items.forEach((subItem) => {
-        const key = subItem.fileExtension
-          ? `${subItem.filename}.${subItem.fileExtension}`
-          : subItem.folderName!;
+        const key =
+          "folderName" in subItem
+            ? subItem.folderName
+            : `${subItem.filename}.${subItem.fileExtension}`;
         directoryContents[key] = processItem(subItem);
       });
 
@@ -45,7 +43,7 @@ export function transformToWebContainerFormat(template: {
         directory: directoryContents,
       };
     } else {
-      // This is a file
+      // This is a TemplateFile
       return {
         file: {
           contents: item.content,
@@ -57,9 +55,10 @@ export function transformToWebContainerFormat(template: {
   const result: WebContainerFileSystem = {};
 
   template.items.forEach((item) => {
-    const key = item.fileExtension
-      ? `${item.filename}.${item.fileExtension}`
-      : item.folderName!;
+    const key =
+      "folderName" in item
+        ? item.folderName
+        : `${item.filename}.${item.fileExtension}`;
     result[key] = processItem(item);
   });
 

@@ -48,8 +48,6 @@ import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { usePlayground } from "@/modules/playground/hooks/usePlayground";
 import { useAISuggestions } from "@/modules/playground/hooks/useAISuggestion";
 import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
-import { SaveUpdatedCode } from "@/modules/playground/actions";
-// import { TemplateFolder } from "@/modules/playground/types";
 import { findFilePath } from "@/modules/playground/libs";
 import { ConfirmationDialog } from "@/modules/playground/components/dialogs/confirmation-dialog";
 
@@ -76,7 +74,6 @@ const MainPlaygroundPage: React.FC = () => {
     closeAllFiles,
     openFile,
     closeFile,
-    editorContent,
     updateFileContent,
     handleAddFile,
     handleAddFolder,
@@ -97,7 +94,6 @@ const MainPlaygroundPage: React.FC = () => {
     error: containerError,
     instance,
     writeFileSync,
-    //@ts-ignore
   } = useWebContainer({ templateData });
 
   const lastSyncedContent = useRef<Map<string, string>>(new Map());
@@ -210,12 +206,11 @@ const MainPlaygroundPage: React.FC = () => {
         const updatedTemplateData = JSON.parse(
           JSON.stringify(latestTemplateData),
         );
-        //@ts-ignore
-        const updateFileContent = (items: any[]) =>
-          //@ts-ignore
+
+        const updateItemContent = (items: any[]): any[] =>
           items.map((item) => {
             if ("folderName" in item) {
-              return { ...item, items: updateFileContent(item.items) };
+              return { ...item, items: updateItemContent(item.items) };
             } else if (
               item.filename === fileToSave.filename &&
               item.fileExtension === fileToSave.fileExtension
@@ -224,7 +219,7 @@ const MainPlaygroundPage: React.FC = () => {
             }
             return item;
           });
-        updatedTemplateData.items = updateFileContent(
+        updatedTemplateData.items = updateItemContent(
           updatedTemplateData.items,
         );
 
@@ -238,9 +233,8 @@ const MainPlaygroundPage: React.FC = () => {
         }
 
         // Use saveTemplateData to persist changes
-        const newTemplateData = await saveTemplateData(updatedTemplateData);
-        //@ts-ignore
-        setTemplateData(newTemplateData || updatedTemplateData);
+        await saveTemplateData(updatedTemplateData);
+        setTemplateData(updatedTemplateData);
 
         // Update open files
         const updatedOpenFiles = openFiles.map((f) =>
@@ -509,11 +503,7 @@ const MainPlaygroundPage: React.FC = () => {
 
                 {/* Editor and Preview */}
                 <div className="flex-1">
-                  <ResizablePanelGroup
-                    //@ts-ignore
-                    direction="horizontal"
-                    className="h-full"
-                  >
+                  <ResizablePanelGroup className="h-full">
                     <ResizablePanel defaultSize={isPreviewVisible ? 50 : 100}>
                       <PlaygroundEditor
                         activeFile={activeFile}
@@ -543,7 +533,7 @@ const MainPlaygroundPage: React.FC = () => {
                           <WebContainerPreview
                             templateData={templateData}
                             instance={instance}
-                            writeFileSync={writeFileSync}
+                            writeFileSync={writeFileSync ?? (async () => {})}
                             isLoading={containerLoading}
                             error={containerError}
                             serverUrl={serverUrl!}
