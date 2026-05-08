@@ -2,7 +2,11 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "lib": ["DOM", "ES2022"],
-    "moduleResolution": "node",
-    "target": "ES2022"
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "module": "ESNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
   }
 }
