@@ -538,6 +538,7 @@ const MainPlaygroundPage: React.FC = () => {
                             error={containerError}
                             serverUrl={serverUrl!}
                             forceResetup={false}
+                            template={playgroundData?.template}
                           />
                         </ResizablePanel>
                       </>
