@@ -1,22 +1,37 @@
 # 🧠 VibeCode IDE – AI-Powered Browser IDE
 
-**VibeCode IDE** is a fullstack browser-based development environment built with **Next.js**, **Monaco Editor**, and **StackBlitz WebContainers**. It delivers a lightweight VS Code–like experience directly in the browser with real-time code execution, AI-assisted development, multi-framework starter templates, an integrated terminal, and persistent playgrounds.
+**VibeCode IDE** is a fullstack browser-based development environment built with **Next.js**, **Monaco Editor**, **Groq AI**, and **StackBlitz WebContainers**.
+
+It delivers a lightweight VS Code–like experience directly in the browser with:
+- real-time code execution
+- AI-assisted development
+- multi-framework starter templates
+- integrated terminal
+- persistent playgrounds
+- AI chat & autocomplete
+
+---
+
+## 🚀 Live Demo
+
+Live App: https://vibecode-ide.vercel.app
 
 ---
 
 ## 🚀 Features
 
-- 🔐 **Authentication with NextAuth/Auth.js** – Google OAuth login support.
+- 🔐 **Authentication with NextAuth/Auth.js** – Google & GitHub OAuth support.
 - 🎨 **Modern Developer UI** – Built with TailwindCSS & ShadCN UI.
 - 🌗 **Dark/Light Mode** – Seamlessly toggle between themes.
 - 🧱 **Multi-Framework Templates** – Supports React, Next.js, Express, Hono, Vue, and Angular.
 - 🗂️ **Custom File Explorer** – Interactive nested file/folder management system.
 - 🖊️ **Monaco Editor Integration** – Syntax highlighting, IntelliSense, and VS Code–like editing experience.
-- 💡 **AI-Powered Coding Assistance** – AI suggestions and AI chat powered by local Ollama models.
+- 💡 **AI-Powered Coding Assistance** – AI suggestions and AI chat powered by Groq-hosted LLMs.
 - ⚙️ **WebContainers Runtime** – Run fullstack applications directly in the browser.
 - 💻 **Integrated Terminal** – Interactive terminal experience powered by xterm.js.
 - 🤖 **AI Chat Assistant** – Ask questions, refactor code, explain files, and improve productivity.
 - 💾 **Persistent Playgrounds** – Save and manage coding workspaces with MongoDB.
+- 🚀 **Production Deployment** – Fully deployed on Vercel with cloud AI integration.
 
 ---
 
@@ -33,7 +48,8 @@
 | Editor           | Monaco Editor            |
 | Runtime          | StackBlitz WebContainers |
 | Terminal         | xterm.js                 |
-| AI Integration   | Ollama                   |
+| AI Integration   | Groq API                 |
+| Hosting          | Vercel                   |
 
 ---
 
@@ -47,11 +63,15 @@ git clone https://github.com/roshankrsu/vibecode-ide.git
 cd vibecode-ide
 ```
 
+---
+
 ### 2. Install Dependencies
 
 ```bash
 npm install
 ```
+
+---
 
 ### 3. Configure Environment Variables
 
@@ -71,24 +91,29 @@ AUTH_SECRET=
 AUTH_GOOGLE_ID=
 AUTH_GOOGLE_SECRET=
 
+AUTH_GITHUB_ID=
+AUTH_GITHUB_SECRET=
+
 NEXTAUTH_URL=http://localhost:3000
 
-OLLAMA_BASE_URL=http://localhost:11434
+GROQ_API_KEY=
 ```
 
-### 4. Start Ollama
+---
 
-Install [Ollama](https://ollama.com/) and run:
+### 4. Configure Groq API
 
-```bash
-ollama serve
+Create a Groq API key:
+
+https://console.groq.com
+
+Add it to your `.env.local`:
+
+```env
+GROQ_API_KEY=
 ```
 
-Then pull/run your coding model:
-
-```bash
-ollama run qwen2.5-coder:7b
-```
+---
 
 ### 5. Start Development Server
 
@@ -101,6 +126,21 @@ Visit:
 ```txt
 http://localhost:3000
 ```
+
+---
+
+## ⚠️ WebContainers Requirement
+
+This project uses **StackBlitz WebContainers**, which require browser isolation headers:
+
+```txt
+Cross-Origin-Opener-Policy
+Cross-Origin-Embedder-Policy
+```
+
+These headers are already configured in `next.config.ts`.
+
+---
 
 ## 📁 Project Structure
 
@@ -121,21 +161,27 @@ http://localhost:3000
 
 ## 🎯 Keyboard Shortcuts
 
-* `Ctrl + Space` → Trigger AI suggestions
-* `Tab` → Accept AI suggestion
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl + Space` | Trigger AI suggestions |
+| `Tab` | Accept AI suggestion |
 
 ---
 
 ## ✅ Roadmap
 
-* [x] Google & GitHub Auth via NextAuth
-* [x] Multiple stack templates
-* [x] Monaco Editor + AI
-* [x] WebContainers + terminal
-* [x] AI chat for code assistance
-* [ ] GitHub repo import/export
-* [ ] Real-time collaboration
-* [ ] One-click deploy via Vercel/Netlify
+- [x] Google & GitHub Auth via NextAuth
+- [x] Multiple stack templates
+- [x] Monaco Editor + AI
+- [x] WebContainers + terminal
+- [x] AI chat for code assistance
+- [x] AI autocomplete
+- [x] Persistent playgrounds
+- [x] Production deployment on Vercel
+- [ ] GitHub repo import/export
+- [ ] Real-time collaboration
+- [ ] Multiplayer editing
+- [ ] One-click deployment
 
 ---
 
@@ -147,9 +193,11 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 🙏 Acknowledgements
 
-- [Next.js](https://nextjs.org)
-- [Monaco Editor](https://microsoft.github.io/monaco-editor/)
-- [WebContainers](https://webcontainers.io/)
-- [Ollama](https://ollama.com/)
-- [xterm.js](https://xtermjs.org/)
-- [Auth.js](https://authjs.dev/)
+- https://nextjs.org
+- https://webcontainers.io
+- https://microsoft.github.io/monaco-editor/
+- https://groq.com
+- https://xtermjs.org
+- https://authjs.dev
+
+---
