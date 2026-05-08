@@ -30,5 +30,16 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "vibecode-starters/**/node_modules",
+    "vibecode-starters/**/.next",
+    "vibecode-starters/**/dist",
+    "vibecode-starters/**/build",
+    "vibecode-starters/**/*.config.ts",
+    "vibecode-starters/**/*.config.js",
+    "vibecode-starters/**/*.config.mts",
+    "vibecode-starters/**/*.config.mjs",
+    "vibecode-starters/**/vitest.config.ts"
+  ]
 }
