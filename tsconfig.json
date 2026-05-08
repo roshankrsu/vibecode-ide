@@ -32,6 +32,7 @@
   ],
   "exclude": [
     "node_modules",
+    "vibecode-starters",
     "vibecode-starters/**/node_modules",
     "vibecode-starters/**/.next",
     "vibecode-starters/**/dist",
