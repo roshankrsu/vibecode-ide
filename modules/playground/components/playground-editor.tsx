@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useEffect, useCallback } from "react";
-import Editor, { type Monaco } from "@monaco-editor/react";
+import EditorComponent, { type Monaco } from "@monaco-editor/react";
+const Editor = EditorComponent as any;
 import {
   configureMonaco,
   defaultEditorOptions,
@@ -43,7 +44,7 @@ export const PlaygroundEditor = ({
   const isAcceptingSuggestionRef = useRef(false);
   const suggestionAcceptedRef = useRef(false);
   const suggestionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const tabCommandRef = useRef<any>(null);
+  const tabCommandRef = useRef<number | null>(null);
 
   // Generate unique ID for each suggestion
   const generateSuggestionId = () =>
@@ -390,9 +391,7 @@ export const PlaygroundEditor = ({
     });
 
     // CRITICAL: Override Tab key with high priority and prevent default Monaco behavior
-    if (tabCommandRef.current) {
-      tabCommandRef.current.dispose();
-    }
+    tabCommandRef.current = null;
 
     tabCommandRef.current = editor.addCommand(
       monaco.KeyCode.Tab,
@@ -573,10 +572,7 @@ export const PlaygroundEditor = ({
         inlineCompletionProviderRef.current.dispose();
         inlineCompletionProviderRef.current = null;
       }
-      if (tabCommandRef.current) {
-        tabCommandRef.current.dispose();
-        tabCommandRef.current = null;
-      }
+      tabCommandRef.current = null;
     };
   }, []);
 
@@ -601,7 +597,7 @@ export const PlaygroundEditor = ({
       <Editor
         height="100%"
         value={content}
-        onChange={(value) => onContentChange(value || "")}
+        onChange={(value: string) => onContentChange(value || "")}
         onMount={handleEditorDidMount}
         language={
           activeFile
