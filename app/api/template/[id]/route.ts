@@ -8,7 +8,6 @@ import { templatePaths } from "@/lib/template";
 import path from "path";
 import fs from "fs/promises";
 import { NextRequest } from "next/server";
-import { error } from "console";
 
 function validateJsonStructure(data: unknown): boolean {
   try {
