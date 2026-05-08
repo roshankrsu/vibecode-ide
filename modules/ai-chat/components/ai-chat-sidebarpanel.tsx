@@ -56,6 +56,27 @@ interface AIChatSidePanelProps {
   isOpen: boolean;
   onClose: () => void;
   theme?: "dark" | "light";
+  onInsertCode?: (
+    code: string,
+    fileName?: string,
+    position?: {
+      line: number;
+      column: number;
+    },
+  ) => void;
+
+  onRunCode?: (code: string, language: string) => void;
+
+  activeFileName?: string;
+
+  activeFileContent?: string;
+
+  activeFileLanguage?: string;
+
+  cursorPosition?: {
+    line: number;
+    column: number;
+  };
 }
 
 const MessageTypeIndicator: React.FC<{
