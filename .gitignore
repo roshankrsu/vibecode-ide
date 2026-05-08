@@ -41,3 +41,21 @@ yarn-error.log*
 next-env.d.ts
 
 /lib/generated/prisma
+
+# starter template dependencies/builds
+vibecode-starters/**/node_modules
+vibecode-starters/**/.next
+vibecode-starters/**/dist
+vibecode-starters/**/build
+
+# generated template output
+output/
+
+# prisma generated client
+/generated
+
+# editor configs
+.vscode
+.idea
+
+*.log
