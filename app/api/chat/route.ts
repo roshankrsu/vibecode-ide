@@ -1,7 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
+});
 
 interface ChatMessage {
-  role: "user" | "assistant";
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -22,107 +28,65 @@ async function generateAIResponse(messages: ChatMessage[]) {
 - Troubleshooting errors
 - Code reviews and optimizations
 
-Always provide clear, practical answers. When showing code, use proper formatting with language-specific syntax.
-Keep responses concise but comprehensive. Use code blocks with language specification when providing code examples.`;
-
-  const fullMessages = [{ role: "system", content: systemPrompt }, ...messages];
-
-  const prompt = fullMessages
-    .map((msg) => `${msg.role}: ${msg.content}`)
-    .join("\n\n");
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
+Always provide clear, practical answers.
+When showing code, use proper formatting with language-specific syntax.
+Keep responses concise but comprehensive.`;
 
   try {
-    const response = await fetch(
-      `${process.env.OLLAMA_BASE_URL}/api/generate`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    const completion = await client.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt,
         },
-        body: JSON.stringify({
-          model: "qwen2.5-coder:7b",
-          prompt,
-          stream: false,
-          options: {
-            temperature: 0.7,
-            top_p: 0.9,
-            num_predict: 1000,
-            repeat_penalty: 1.1,
-            num_ctx: 4096,
-          },
-        }),
-        signal: controller.signal,
-      },
-    );
+        ...messages,
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+    });
 
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Error from AI model API:", errorText);
-      throw new Error(`AI model API error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    if (!data.response) {
-      throw new Error("No response from AI model");
-    }
-    return data.response.trim();
+    return completion.choices[0]?.message?.content || "";
   } catch (error) {
-    clearTimeout(timeoutId);
-    if ((error as Error).name === "AbortError") {
-      throw new Error("Request timeout: AI model took too long to respond");
-    }
     console.error("AI generation error:", error);
     throw error;
   }
 }
 
 async function enhancePrompt(request: EnhancePromptRequest) {
-  const enhancementPrompt = `You are a prompt enhancement assistant. Take the user's basic prompt and enhance it to be more specific, detailed, and effective for a coding AI assistant.
+  const enhancementPrompt = `You are a prompt enhancement assistant.
 
-Original prompt: "${request.prompt}"
+Take the user's coding prompt and improve it to be:
+- more specific
+- technically detailed
+- clearer
+- better structured
 
-Context: ${request.context ? JSON.stringify(request.context, null, 2) : "No additional context"}
+Original prompt:
+"${request.prompt}"
 
-Enhanced prompt should:
-- Be more specific and detailed
-- Include relevant technical context
-- Ask for specific examples or explanations
-- Be clear about expected output format
-- Maintain the original intent
+Context:
+${request.context ? JSON.stringify(request.context, null, 2) : "No additional context"}
 
-Return only the enhanced prompt, nothing else.`;
+Return ONLY the enhanced prompt.`;
 
   try {
-    const response = await fetch(`${process.env.OLLAMA_BASE_URL}/api/generate`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "qwen2.5-coder:7b",
-        prompt: enhancementPrompt,
-        stream: false,
-        options: {
-          temperature: 0.3,
-          num_predict: 500,
+    const completion = await client.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "user",
+          content: enhancementPrompt,
         },
-      }),
+      ],
+      temperature: 0.3,
+      max_tokens: 500,
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to enhance prompt");
-    }
-
-    const data = await response.json();
-    return data.response?.trim() || request.prompt;
+    return completion.choices[0]?.message?.content || request.prompt;
   } catch (error) {
     console.error("Prompt enhancement error:", error);
-    return request.prompt; // Return original if enhancement fails
+    return request.prompt;
   }
 }
 
@@ -130,19 +94,26 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Handle prompt enhancement
+    // Prompt enhancement
     if (body.action === "enhance") {
       const enhancedPrompt = await enhancePrompt(body as EnhancePromptRequest);
-      return NextResponse.json({ enhancedPrompt });
+
+      return NextResponse.json({
+        enhancedPrompt,
+      });
     }
 
-    // Handle regular chat
+    // Regular AI chat
     const { message, history } = body;
 
     if (!message || typeof message !== "string") {
       return NextResponse.json(
-        { error: "Message is required and must be a string" },
-        { status: 400 },
+        {
+          error: "Message is required and must be a string",
+        },
+        {
+          status: 400,
+        },
       );
     }
 
@@ -158,9 +129,13 @@ export async function POST(req: NextRequest) {
       : [];
 
     const recentHistory = validHistory.slice(-10);
+
     const messages: ChatMessage[] = [
       ...recentHistory,
-      { role: "user", content: message },
+      {
+        role: "user",
+        content: message,
+      },
     ];
 
     const aiResponse = await generateAIResponse(messages);
@@ -175,15 +150,19 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error in AI chat route:", error);
+
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";
+
     return NextResponse.json(
       {
         error: "Failed to generate AI response",
         details: errorMessage,
         timestamp: new Date().toISOString(),
       },
-      { status: 500 },
+      {
+        status: 500,
+      },
     );
   }
 }
@@ -191,6 +170,7 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     status: "AI Chat API is running",
+    provider: "Groq",
     timestamp: new Date().toISOString(),
     info: "Use POST method to send chat messages or enhance prompts",
   });

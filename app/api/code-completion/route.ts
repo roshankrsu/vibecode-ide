@@ -1,4 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
+});
 
 interface CodeSuggestionRequest {
   fileContent: string;
@@ -146,34 +152,29 @@ Generate suggestion:`;
  */
 async function generateSuggestion(prompt: string): Promise<string> {
   try {
-    // Replace this with your actual AI service call
-    const response = await fetch(
-      `${process.env.OLLAMA_BASE_URL}/api/generate`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "qwen2.5-coder:7b",
-          prompt,
-          stream: false,
-          options: {
-            temperature: 0.7,
-            num_predict: 300,
-          },
-        }),
-      },
-    );
+    const completion = await client.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an expert AI code completion assistant. Return ONLY the code completion with no explanations, markdown, or extra text.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0.3,
+      max_tokens: 300,
+    });
 
-    if (!response.ok) {
-      throw new Error(`AI service error: ${response.statusText}`);
-    }
+    let suggestion = completion.choices[0]?.message?.content?.trim() || "";
 
-    const data = await response.json();
-    let suggestion = data.response;
-
-    // Clean up the suggestion
+    // Remove markdown code blocks if present
     if (suggestion.includes("```")) {
       const codeMatch = suggestion.match(/```[\w]*\n?([\s\S]*?)```/);
+
       suggestion = codeMatch ? codeMatch[1].trim() : suggestion;
     }
 
@@ -183,6 +184,7 @@ async function generateSuggestion(prompt: string): Promise<string> {
     return suggestion;
   } catch (error) {
     console.error("AI generation error:", error);
+
     return "// AI suggestion unavailable";
   }
 }
