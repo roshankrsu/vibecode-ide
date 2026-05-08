@@ -16,6 +16,7 @@ interface WebContainerPreviewProps {
   instance: WebContainer | null;
   writeFileSync: (path: string, content: string) => Promise<void>;
   forceResetup?: boolean; // Optional prop to force re-setup
+  template?: string;
 }
 
 const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
@@ -26,6 +27,7 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
   serverUrl,
   writeFileSync,
   forceResetup = false,
+  template,
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [loadingState, setLoadingState] = useState({
@@ -195,13 +197,23 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
         setCurrentStep(4);
 
         // Step 4: Start the server
+
+        // dynamic script detection
+        const pkgJson = await instance.fs.readFile("package.json", "utf8");
+        const pkg = JSON.parse(pkgJson);
+        const startScript = pkg.scripts?.start
+          ? "start"
+          : pkg.scripts?.dev
+            ? "dev"
+            : "start";
+
         if (terminalRef.current?.writeToTerminal) {
           terminalRef.current.writeToTerminal(
-            "🚀 Starting development server...\r\n",
+            `🚀 Running npm run ${startScript}...\r\n`,
           );
         }
 
-        const startProcess = await instance.spawn("npm", ["run", "start"]);
+        const startProcess = await instance.spawn("npm", ["run", startScript]);
 
         // Listen for server ready event
         instance.on("server-ready", (port: number, url: string) => {
@@ -266,7 +278,7 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center space-y-4 max-w-md p-6 rounded-lg bg-gray-50 dark:bg-gray-900">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
+          <Loader2 className="h-10 w-10 animate-spin text-[#7C3AED] mx-auto" />
           <h3 className="text-lg font-medium">Initializing WebContainer</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Setting up the environment for your project...
@@ -294,7 +306,7 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
     if (stepIndex < currentStep) {
       return <CheckCircle className="h-5 w-5 text-green-500" />;
     } else if (stepIndex === currentStep) {
-      return <Loader2 className="h-5 w-5 animate-spin text-blue-500" />;
+      return <Loader2 className="h-5 w-5 animate-spin text-[#7C3AED]" />;
     } else {
       return <div className="h-5 w-5 rounded-full border-2 border-gray-300" />;
     }
@@ -310,7 +322,7 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
           isComplete
             ? "text-green-600"
             : isActive
-              ? "text-blue-600"
+              ? "text-[#7C3AED]"
               : "text-gray-500"
         }`}
       >
@@ -323,10 +335,20 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
     <div className="h-full w-full flex flex-col">
       {!previewUrl ? (
         <div className="h-full flex flex-col">
+          {/* ✅ Heavy template warning */}
+          {["NEXTJS", "ANGULAR"].includes(template || "") && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-400 px-4 py-2 text-sm flex items-center gap-2">
+              <span>⚠️</span>
+              <span>
+                This template has large dependencies and may take 5-10 minutes
+                to install.
+              </span>
+            </div>
+          )}
           <div className="w-full max-w-md p-6 m-5 rounded-lg bg-white dark:bg-zinc-800 shadow-sm mx-auto">
             <Progress
               value={(currentStep / totalSteps) * 100}
-              className="h-2 mb-6"
+              className="h-2 mb-6 [&>div]:bg-[#7C3AED]"
             />
 
             <div className="space-y-4 mb-6">
