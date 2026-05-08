@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider as NextAuthSessionProvider } from "next-auth/react";
+
 import { auth } from "@/auth";
 import { ThemeProvider } from "@/components/ui/providers/theme-providers";
 import { Toaster } from "@/components/ui/sonner";
+
+const SessionProvider = NextAuthSessionProvider as React.ComponentType<any>;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,7 +48,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <SessionProvider session={session}>
-            <Toaster position="top-center"/>
+            <Toaster position="top-center" />
             {children}
           </SessionProvider>
         </ThemeProvider>
