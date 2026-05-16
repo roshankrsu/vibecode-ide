@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     default: "VibeCode IDE",
   },
   icons: {
-    icon: "/logo.jpeg", 
+    icon: "/logo.png",
   },
 };
 

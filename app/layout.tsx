@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   title: "vibecode-ide",
   description: "VibeCode IDE - A powerful and intelligent code editor",
   icons: {
-    icon: "/logo.jpeg",
+    icon: "/logo.png",
   },
 };
 

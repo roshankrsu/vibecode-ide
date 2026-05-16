@@ -33,7 +33,7 @@ export function Header() {
                     className="flex items-center gap-2 justify-center"
                   >
                     <Image
-                      src={"/logo.jpeg"}
+                      src={"/logo.png"}
                       alt="Logo"
                       height={40}
                       width={40}
