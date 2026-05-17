@@ -9,8 +9,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Search, Code, Globe, Terminal, FileCode, Check } from "lucide-react";
+import { Search, Check } from "lucide-react";
 import { useMemo, useState } from "react";
+import {
+  SiJavascript,
+  SiPython,
+  SiC,
+  SiCplusplus,
+  SiHtml5,
+} from "react-icons/si";
 
 type Language = "javascript" | "python" | "c" | "cpp" | "html";
 
@@ -36,37 +43,37 @@ const languages: LanguageOption[] = [
   {
     id: "javascript",
     name: "JavaScript",
-    description: "Run JavaScript code instantly in the browser IDE",
-    icon: <Code size={22} />,
+    description: "Run JavaScript code instantly",
+    icon: <SiJavascript size={22} />,
     tags: ["Frontend", "Backend", "Node.js"],
   },
   {
     id: "python",
     name: "Python",
     description: "Write and execute Python scripts",
-    icon: <Terminal size={22} />,
-    tags: ["Scripting", "AI", "Automation"],
+    icon: <SiPython size={22} />,
+    tags: ["AI", "Automation", "Scripting"],
   },
   {
     id: "c",
     name: "C",
     description: "Compile and run C programs",
-    icon: <FileCode size={22} />,
+    icon: <SiC size={22} />,
     tags: ["Systems", "Low-level"],
   },
   {
     id: "cpp",
     name: "C++",
     description: "Compile and run C++ programs",
-    icon: <FileCode size={22} />,
+    icon: <SiCplusplus size={22} />,
     tags: ["OOP", "Performance"],
   },
   {
     id: "html",
     name: "HTML",
-    description: "Preview HTML instantly with live rendering",
-    icon: <Globe size={22} />,
-    tags: ["Web", "Preview"],
+    description: "Preview HTML instantly",
+    icon: <SiHtml5 size={22} />,
+    tags: ["Web", "Frontend"],
   },
 ];
 
