@@ -1,16 +1,18 @@
 "use client";
 
-import React, { useRef } from "react";
-import { useState, useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { TemplateFileTree } from "@/modules/playground/components/playground-explorer";
+
 import type {
   TemplateFile,
   TemplateFolder,
 } from "@/modules/playground/libs/path-to-json";
+
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
+
 import {
   FileText,
   FolderOpen,
@@ -19,6 +21,7 @@ import {
   X,
   Settings,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -29,32 +32,36 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import WebContainerPreview from "@/modules/webcontainers/components/webcontainer-preview";
+
 import LoadingStep from "@/modules/playground/components/loader";
 import { PlaygroundEditor } from "@/modules/playground/components/playground-editor";
 import ToggleAI from "@/modules/playground/components/toggle-ai";
+
 import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { usePlayground } from "@/modules/playground/hooks/usePlayground";
 import { useAISuggestions } from "@/modules/playground/hooks/useAISuggestion";
-import { useWebContainer } from "@/modules/webcontainers/hooks/useWebContainer";
+
 import { findFilePath } from "@/modules/playground/libs";
+
 import { ConfirmationDialog } from "@/modules/playground/components/dialogs/confirmation-dialog";
 
 const MainPlaygroundPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
 
-  // UI state
+  // UI State
   const [confirmationDialog, setConfirmationDialog] = useState({
     isOpen: false,
     title: "",
@@ -65,10 +72,14 @@ const MainPlaygroundPage: React.FC = () => {
 
   const [isPreviewVisible, setIsPreviewVisible] = useState(true);
 
-  // Custom hooks
+  // Playground Data
   const { playgroundData, templateData, isLoading, error, saveTemplateData } =
     usePlayground(id);
+
+  // AI Suggestions
   const aiSuggestions = useAISuggestions();
+
+  // File Explorer
   const {
     activeFileId,
     closeAllFiles,
@@ -88,47 +99,31 @@ const MainPlaygroundPage: React.FC = () => {
     setOpenFiles,
   } = useFileExplorer();
 
-  const {
-    serverUrl,
-    isLoading: containerLoading,
-    error: containerError,
-    instance,
-    writeFileSync,
-  } = useWebContainer({ templateData });
-
-  const lastSyncedContent = useRef<Map<string, string>>(new Map());
-
-  // Set template data when playground loads
+  // Initialize playground ID
   React.useEffect(() => {
     setPlaygroundId(id);
   }, [id, setPlaygroundId]);
 
-  // Initialize zustand templateData from usePlayground only on first load
+  // Initialize template data
   React.useEffect(() => {
     if (templateData && !openFiles.length) {
       setTemplateData(templateData);
     }
   }, [templateData, setTemplateData, openFiles.length]);
 
-  // Create wrapper functions that pass saveTemplateData
+  // Wrapped File Handlers
   const wrappedHandleAddFile = useCallback(
     (newFile: TemplateFile, parentPath: string) => {
-      return handleAddFile(
-        newFile,
-        parentPath,
-        writeFileSync!,
-        instance,
-        saveTemplateData,
-      );
+      return handleAddFile(newFile, parentPath, saveTemplateData);
     },
-    [handleAddFile, writeFileSync, instance, saveTemplateData],
+    [handleAddFile, saveTemplateData],
   );
 
   const wrappedHandleAddFolder = useCallback(
     (newFolder: TemplateFolder, parentPath: string) => {
-      return handleAddFolder(newFolder, parentPath, instance, saveTemplateData);
+      return handleAddFolder(newFolder, parentPath, saveTemplateData);
     },
-    [handleAddFolder, instance, saveTemplateData],
+    [handleAddFolder, saveTemplateData],
   );
 
   const wrappedHandleDeleteFile = useCallback(
@@ -176,25 +171,31 @@ const MainPlaygroundPage: React.FC = () => {
   );
 
   const activeFile = openFiles.find((file) => file.id === activeFileId);
+
   const hasUnsavedChanges = openFiles.some((file) => file.hasUnsavedChanges);
 
   const handleFileSelect = (file: TemplateFile) => {
     openFile(file);
   };
 
+  // Save File
   const handleSave = useCallback(
     async (fileId?: string) => {
       const targetFileId = fileId || activeFileId;
+
       if (!targetFileId) return;
 
       const fileToSave = openFiles.find((f) => f.id === targetFileId);
+
       if (!fileToSave) return;
 
       const latestTemplateData = useFileExplorer.getState().templateData;
+
       if (!latestTemplateData) return;
 
       try {
         const filePath = findFilePath(fileToSave, latestTemplateData);
+
         if (!filePath) {
           toast.error(
             `Could not find path for file: ${fileToSave.filename}.${fileToSave.fileExtension}`,
@@ -202,7 +203,6 @@ const MainPlaygroundPage: React.FC = () => {
           return;
         }
 
-        // Update file content in template data (clone for immutability)
         const updatedTemplateData = JSON.parse(
           JSON.stringify(latestTemplateData),
         );
@@ -210,33 +210,33 @@ const MainPlaygroundPage: React.FC = () => {
         const updateItemContent = (items: any[]): any[] =>
           items.map((item) => {
             if ("folderName" in item) {
-              return { ...item, items: updateItemContent(item.items) };
-            } else if (
+              return {
+                ...item,
+                items: updateItemContent(item.items),
+              };
+            }
+
+            if (
               item.filename === fileToSave.filename &&
               item.fileExtension === fileToSave.fileExtension
             ) {
-              return { ...item, content: fileToSave.content };
+              return {
+                ...item,
+                content: fileToSave.content,
+              };
             }
+
             return item;
           });
+
         updatedTemplateData.items = updateItemContent(
           updatedTemplateData.items,
         );
 
-        // Sync with WebContainer
-        if (writeFileSync) {
-          await writeFileSync(filePath, fileToSave.content);
-          lastSyncedContent.current.set(fileToSave.id, fileToSave.content);
-          if (instance && instance.fs) {
-            await instance.fs.writeFile(filePath, fileToSave.content);
-          }
-        }
-
-        // Use saveTemplateData to persist changes
         await saveTemplateData(updatedTemplateData);
+
         setTemplateData(updatedTemplateData);
 
-        // Update open files
         const updatedOpenFiles = openFiles.map((f) =>
           f.id === targetFileId
             ? {
@@ -247,6 +247,7 @@ const MainPlaygroundPage: React.FC = () => {
               }
             : f,
         );
+
         setOpenFiles(updatedOpenFiles);
 
         toast.success(
@@ -254,23 +255,18 @@ const MainPlaygroundPage: React.FC = () => {
         );
       } catch (err) {
         console.error("Error saving file:", err);
+
         toast.error(
           `Failed to save ${fileToSave.filename}.${fileToSave.fileExtension}`,
         );
+
         throw err;
       }
     },
-    [
-      activeFileId,
-      openFiles,
-      writeFileSync,
-      instance,
-      saveTemplateData,
-      setTemplateData,
-      setOpenFiles,
-    ],
+    [activeFileId, openFiles, saveTemplateData, setTemplateData, setOpenFiles],
   );
 
+  // Save All
   const handleSaveAll = async () => {
     const unsavedFiles = openFiles.filter((f) => f.hasUnsavedChanges);
 
@@ -281,13 +277,14 @@ const MainPlaygroundPage: React.FC = () => {
 
     try {
       await Promise.all(unsavedFiles.map((f) => handleSave(f.id)));
+
       toast.success(`Saved ${unsavedFiles.length} file(s)`);
-    } catch (err) {
+    } catch {
       toast.error("Failed to save some files");
     }
   };
 
-  // Add event to save file by click ctrl + s
+  // Ctrl + S
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "s") {
@@ -295,19 +292,24 @@ const MainPlaygroundPage: React.FC = () => {
         handleSave();
       }
     };
+
     window.addEventListener("keydown", handleKeyDown);
+
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleSave]);
 
-  // Error state
+  // Error State
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-4">
         <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+
         <h2 className="text-xl font-semibold text-red-600 mb-2">
           Something went wrong
         </h2>
+
         <p className="text-gray-600 mb-4">{error}</p>
+
         <Button onClick={() => window.location.reload()} variant="destructive">
           Try Again
         </Button>
@@ -315,7 +317,7 @@ const MainPlaygroundPage: React.FC = () => {
     );
   }
 
-  // Loading state
+  // Loading State
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-4">
@@ -323,17 +325,20 @@ const MainPlaygroundPage: React.FC = () => {
           <h2 className="text-xl font-semibold mb-6 text-center text-[#7C3AED]">
             Loading Playground
           </h2>
+
           <div className="mb-8">
             <LoadingStep
               currentStep={1}
               step={1}
               label="Loading playground data"
             />
+
             <LoadingStep
               currentStep={2}
               step={2}
               label="Setting up environment"
             />
+
             <LoadingStep currentStep={3} step={3} label="Ready to code" />
           </div>
         </div>
@@ -341,14 +346,16 @@ const MainPlaygroundPage: React.FC = () => {
     );
   }
 
-  // No template data
+  // No Template Data
   if (!templateData) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-4">
         <FolderOpen className="h-12 w-12 text-[#7C3AED] mb-4" />
+
         <h2 className="text-xl font-semibold text-[#7C3AED] mb-2">
           No template data available
         </h2>
+
         <Button
           onClick={() => window.location.reload()}
           className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white"
@@ -378,13 +385,15 @@ const MainPlaygroundPage: React.FC = () => {
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />
+
             <Separator orientation="vertical" className="mr-2 h-4" />
 
             <div className="flex flex-1 items-center gap-2">
               <div className="flex flex-col flex-1">
                 <h1 className="text-sm font-medium">
-                  {playgroundData?.name || "Code Playground"}
+                  {playgroundData?.name || "Online IDE"}
                 </h1>
+
                 <p className="text-xs text-muted-foreground">
                   {openFiles.length} file(s) open
                   {hasUnsavedChanges && " • Unsaved changes"}
@@ -403,6 +412,7 @@ const MainPlaygroundPage: React.FC = () => {
                       <Save className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
+
                   <TooltipContent>Save (Ctrl+S)</TooltipContent>
                 </Tooltip>
 
@@ -417,7 +427,8 @@ const MainPlaygroundPage: React.FC = () => {
                       <Save className="h-4 w-4" /> All
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Save All (Ctrl+Shift+S)</TooltipContent>
+
+                  <TooltipContent>Save All</TooltipContent>
                 </Tooltip>
 
                 <ToggleAI
@@ -432,13 +443,16 @@ const MainPlaygroundPage: React.FC = () => {
                       <Settings className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
+
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       onClick={() => setIsPreviewVisible(!isPreviewVisible)}
                     >
                       {isPreviewVisible ? "Hide" : "Show"} Preview
                     </DropdownMenuItem>
+
                     <DropdownMenuSeparator />
+
                     <DropdownMenuItem onClick={closeAllFiles}>
                       Close All Files
                     </DropdownMenuItem>
@@ -451,7 +465,7 @@ const MainPlaygroundPage: React.FC = () => {
           <div className="h-[calc(100vh-4rem)]">
             {openFiles.length > 0 ? (
               <div className="h-full flex flex-col">
-                {/* File Tabs */}
+                {/* Tabs */}
                 <div className="border-b bg-muted/30">
                   <Tabs
                     value={activeFileId || ""}
@@ -467,12 +481,15 @@ const MainPlaygroundPage: React.FC = () => {
                           >
                             <div className="flex items-center gap-2">
                               <FileText className="h-3 w-3" />
+
                               <span>
                                 {file.filename}.{file.fileExtension}
                               </span>
+
                               {file.hasUnsavedChanges && (
                                 <span className="h-2 w-2 rounded-full bg-[#7C3AED]" />
                               )}
+
                               <span
                                 className="ml-2 h-4 w-4 hover:bg-destructive hover:text-destructive-foreground rounded-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                                 onClick={(e) => {
@@ -501,7 +518,7 @@ const MainPlaygroundPage: React.FC = () => {
                   </Tabs>
                 </div>
 
-                {/* Editor and Preview */}
+                {/* Editor + Output */}
                 <div className="flex-1">
                   <ResizablePanelGroup className="h-full">
                     <ResizablePanel defaultSize={isPreviewVisible ? 50 : 100}>
@@ -529,17 +546,19 @@ const MainPlaygroundPage: React.FC = () => {
                     {isPreviewVisible && (
                       <>
                         <ResizableHandle />
+
                         <ResizablePanel defaultSize={50}>
-                          <WebContainerPreview
-                            templateData={templateData}
-                            instance={instance}
-                            writeFileSync={writeFileSync ?? (async () => {})}
-                            isLoading={containerLoading}
-                            error={containerError}
-                            serverUrl={serverUrl!}
-                            forceResetup={false}
-                            template={playgroundData?.template}
-                          />
+                          {activeFile?.fileExtension === "html" ? (
+                            <iframe
+                              srcDoc={activeFile.content}
+                              className="w-full h-full border-0 bg-white"
+                              title="HTML Preview"
+                            />
+                          ) : (
+                            <div className="p-4 text-sm text-muted-foreground">
+                              Output panel coming soon.
+                            </div>
+                          )}
                         </ResizablePanel>
                       </>
                     )}
@@ -549,8 +568,10 @@ const MainPlaygroundPage: React.FC = () => {
             ) : (
               <div className="flex flex-col h-full items-center justify-center text-muted-foreground gap-4">
                 <FileText className="h-16 w-16 text-[#7C3AED]/40" />
+
                 <div className="text-center">
                   <p className="text-lg font-medium">No files open</p>
+
                   <p className="text-sm text-gray-500">
                     Select a file from the sidebar to start editing
                   </p>
@@ -567,7 +588,10 @@ const MainPlaygroundPage: React.FC = () => {
           onConfirm={confirmationDialog.onConfirm}
           onCancel={confirmationDialog.onCancel}
           setIsOpen={(open) =>
-            setConfirmationDialog((prev) => ({ ...prev, isOpen: open }))
+            setConfirmationDialog((prev) => ({
+              ...prev,
+              isOpen: open,
+            }))
           }
         />
       </>

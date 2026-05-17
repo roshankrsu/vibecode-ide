@@ -1,18 +1,86 @@
-import { scanTemplateDirectory } from "@/modules/playground/libs/path-to-json";
 import { db } from "@/lib/db";
-import { templatePaths } from "@/lib/template";
-import path from "path";
 import { NextRequest } from "next/server";
 
-function validateJsonStructure(data: unknown): boolean {
-  try {
-    JSON.parse(JSON.stringify(data));
-    return true;
-  } catch (error) {
-    console.error("Invalid JSON structure: ", error);
-    return false;
-  }
-}
+const defaultTemplates = {
+  javascript: {
+    folderName: "root",
+    items: [
+      {
+        id: "1",
+        filename: "main",
+        fileExtension: "js",
+        content: 'console.log("Hello World");',
+      },
+    ],
+  },
+
+  python: {
+    folderName: "root",
+    items: [
+      {
+        id: "1",
+        filename: "main",
+        fileExtension: "py",
+        content: 'print("Hello World")',
+      },
+    ],
+  },
+
+  c: {
+    folderName: "root",
+    items: [
+      {
+        id: "1",
+        filename: "main",
+        fileExtension: "c",
+        content: `#include <stdio.h>
+
+int main() {
+  printf("Hello World");
+  return 0;
+}`,
+      },
+    ],
+  },
+
+  cpp: {
+    folderName: "root",
+    items: [
+      {
+        id: "1",
+        filename: "main",
+        fileExtension: "cpp",
+        content: `#include <iostream>
+using namespace std;
+
+int main() {
+  cout << "Hello World";
+  return 0;
+}`,
+      },
+    ],
+  },
+
+  html: {
+    folderName: "root",
+    items: [
+      {
+        id: "1",
+        filename: "index",
+        fileExtension: "html",
+        content: `<!DOCTYPE html>
+<html>
+<head>
+  <title>Preview</title>
+</head>
+<body>
+  <h1>Hello World</h1>
+</body>
+</html>`,
+      },
+    ],
+  },
+};
 
 export async function GET(
   request: NextRequest,
@@ -32,31 +100,17 @@ export async function GET(
     return Response.json({ error: "Playground not found" }, { status: 404 });
   }
 
-  const templateKey = playground.template as keyof typeof templatePaths;
-  const templatePath = templatePaths[templateKey];
+  const language =
+    (playground.template as keyof typeof defaultTemplates) || "javascript";
 
-  try {
-    const inputPath = path.join(process.cwd(), templatePath);
+  const templateJson =
+    defaultTemplates[language] || defaultTemplates.javascript;
 
-    // Scan directly into memory — no file writing needed
-    const result = await scanTemplateDirectory(inputPath);
-
-    if (!validateJsonStructure(result.items)) {
-      return Response.json(
-        { error: "Invalid JSON structure" },
-        { status: 500 },
-      );
-    }
-
-    return Response.json(
-      { success: true, templateJson: result },
-      { status: 200 },
-    );
-  } catch (error) {
-    console.error("Error generating JSON: ", error);
-    return Response.json(
-      { error: "Failed to generate template" },
-      { status: 500 },
-    );
-  }
+  return Response.json(
+    {
+      success: true,
+      templateJson,
+    },
+    { status: 200 },
+  );
 }

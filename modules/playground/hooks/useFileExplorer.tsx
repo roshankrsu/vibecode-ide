@@ -23,14 +23,11 @@ interface FileExplorerState {
   handleAddFile: (
     newFile: TemplateFile,
     parentPath: string,
-    writeFileSync: (filePath: string, content: string) => Promise<void>,
-    instance: any,
     saveTemplateData: (data: TemplateFolder) => Promise<void>,
   ) => Promise<void>;
   handleAddFolder: (
     newFolder: TemplateFolder,
     parentPath: string,
-    instance: any,
     saveTemplateData: (data: TemplateFolder) => Promise<void>,
   ) => Promise<void>;
   handleDeleteFile: (
@@ -142,13 +139,7 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
     });
   },
 
-  handleAddFile: async (
-    newFile,
-    parentPath,
-    writeFileSync,
-    instance,
-    saveTemplateData,
-  ) => {
+  handleAddFile: async (newFile, parentPath, saveTemplateData) => {
     const { templateData } = get();
     if (!templateData) return;
 
@@ -177,14 +168,6 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
       // Use the passed saveTemplateData function
       await saveTemplateData(updatedTemplateData);
 
-      // Sync with web container
-      if (writeFileSync) {
-        const filePath = parentPath
-          ? `${parentPath}/${newFile.filename}.${newFile.fileExtension}`
-          : `${newFile.filename}.${newFile.fileExtension}`;
-        await writeFileSync(filePath, newFile.content || "");
-      }
-
       get().openFile(newFile);
     } catch (error) {
       console.error("Error adding file:", error);
@@ -192,12 +175,7 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
     }
   },
 
-  handleAddFolder: async (
-    newFolder,
-    parentPath,
-    instance,
-    saveTemplateData,
-  ) => {
+  handleAddFolder: async (newFolder, parentPath, saveTemplateData) => {
     const { templateData } = get();
     if (!templateData) return;
 
@@ -223,14 +201,6 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
 
       // Use the passed saveTemplateData function
       await saveTemplateData(updatedTemplateData);
-
-      // Sync with web container
-      if (instance && instance.fs) {
-        const folderPath = parentPath
-          ? `${parentPath}/${newFolder.folderName}`
-          : newFolder.folderName;
-        await instance.fs.mkdir(folderPath, { recursive: true });
-      }
     } catch (error) {
       console.error("Error adding folder:", error);
       toast.error("Failed to create folder");
