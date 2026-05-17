@@ -4,33 +4,34 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import TemplateSelectingModal from "./template-selecting-modal";
+import LanguageSelectingModal from "./language-selecting-modal";
 import { useRouter } from "next/navigation";
 import { createPlayground } from "../actions";
 import { toast } from "sonner";
 
+type Language = "javascript" | "python" | "c" | "cpp" | "html";
+
 const AddNewButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const [selectedTemplate, setSelectedTemplate] = useState<{
-    title: string;
-    template: "REACT" | "NEXTJS" | "EXPRESS" | "VUE" | "HONO" | "ANGULAR";
-    description?: string;
-  } | null>(null);
 
   const router = useRouter();
 
   const handleSubmit = async (data: {
     title: string;
-    template: "REACT" | "NEXTJS" | "EXPRESS" | "VUE" | "HONO" | "ANGULAR";
+    language: Language;
     description?: string;
   }) => {
-    setSelectedTemplate(data);
+    try {
+      const res = await createPlayground(data);
 
-    const res = await createPlayground(data);
-    toast.success("Playground Created Successfully");
-    setIsModalOpen(false);
-    router.push(`/playground/${res?.id}`);
+      toast.success("Project created successfully");
+
+      setIsModalOpen(false);
+
+      router.push(`/playground/${res?.id}`);
+    } catch {
+      toast.error("Failed to create project");
+    }
   };
 
   return (
@@ -45,34 +46,37 @@ const AddNewButton = () => {
       >
         <div className="flex flex-row justify-center items-start gap-4">
           <Button
-            variant={"outline"}
+            variant="outline"
             className="flex justify-center items-center bg-white group-hover:bg-[#f5f3ff] group-hover:border-[#7C3AED] group-hover:text-[#7C3AED] transition-colors duration-300"
-            size={"icon"}
+            size="icon"
           >
             <Plus
               size={30}
               className="transition-transform duration-300 group-hover:rotate-90"
             />
           </Button>
+
           <div className="flex flex-col">
-            <h1 className="text-xl font-bold text-[#7C3AED]">Add New</h1>
+            <h1 className="text-xl font-bold text-[#7C3AED]">New Project</h1>
+
             <p className="text-sm text-muted-foreground max-w-55">
-              Create a new playground
+              Create a new coding project
             </p>
           </div>
         </div>
 
         <div className="relative overflow-hidden">
           <Image
-            src={"/add-new.svg"}
-            alt="Create new playground"
+            src="/add-new.svg"
+            alt="Create new project"
             width={150}
             height={150}
             className="transition-transform duration-300 group-hover:scale-110"
           />
         </div>
       </div>
-      <TemplateSelectingModal
+
+      <LanguageSelectingModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
