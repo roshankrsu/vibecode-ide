@@ -59,6 +59,22 @@ int main() {
 }`,
       },
     ],
+    
+  },
+  java: {
+    folderName: "root",
+    items: [
+      {
+        id: "1",
+        filename: "Main",
+        fileExtension: "java",
+        content: `public class Main {
+  public static void main(String[] args) {
+    System.out.println("Hello World");
+  }
+}`,
+      },
+    ],
   },
 
   html: {

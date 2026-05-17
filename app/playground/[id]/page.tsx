@@ -20,6 +20,7 @@ import {
   Save,
   X,
   Settings,
+  Play,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,9 @@ const MainPlaygroundPage: React.FC = () => {
   });
 
   const [isPreviewVisible, setIsPreviewVisible] = useState(true);
+
+  const [output, setOutput] = useState("");
+  const [isRunning, setIsRunning] = useState(false);
 
   // Playground Data
   const { playgroundData, templateData, isLoading, error, saveTemplateData } =
@@ -284,6 +288,61 @@ const MainPlaygroundPage: React.FC = () => {
     }
   };
 
+  const handleRunCode = async () => {
+    if (!activeFile || isRunning) return;
+
+    if (activeFile.fileExtension === "html") {
+      toast.info("HTML runs in preview mode");
+      return;
+    }
+
+    const extensionMap: Record<string, string> = {
+      js: "javascript",
+      py: "python",
+      c: "c",
+      cpp: "cpp",
+      java: "java",
+    };
+
+    const language = extensionMap[activeFile.fileExtension];
+
+    if (!language) {
+      toast.error("Unsupported file type");
+      return;
+    }
+
+    setIsRunning(true);
+    setOutput("");
+
+    try {
+      const response = await fetch("/api/run", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: activeFile.content,
+          language,
+        }),
+      });
+
+      const result = await response.json();
+
+      setOutput(
+        result.output ||
+          result.stdout ||
+          result.stderr ||
+          result.error ||
+          "No output",
+      );
+    } catch (error) {
+      console.error(error);
+      setOutput("Execution failed");
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   // Ctrl + S
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -429,6 +488,21 @@ const MainPlaygroundPage: React.FC = () => {
                   </TooltipTrigger>
 
                   <TooltipContent>Save All</TooltipContent>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        onClick={handleRunCode}
+                        disabled={!activeFile || isRunning}
+                      >
+                        <Play className="h-4 w-4" />
+                        {isRunning ? "Running..." : "Run"}
+                      </Button>
+                    </TooltipTrigger>
+
+                    <TooltipContent>Run Code</TooltipContent>
+                  </Tooltip>
                 </Tooltip>
 
                 <ToggleAI
@@ -555,8 +629,10 @@ const MainPlaygroundPage: React.FC = () => {
                               title="HTML Preview"
                             />
                           ) : (
-                            <div className="p-4 text-sm text-muted-foreground">
-                              Output panel coming soon.
+                            <div className="h-full bg-black text-green-400 font-mono text-sm p-4 overflow-auto">
+                              {isRunning
+                                ? "Running..."
+                                : output || "Run your code to see output"}
                             </div>
                           )}
                         </ResizablePanel>
