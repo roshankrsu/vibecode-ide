@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { currentUser } from "@/modules/auth/actions";
 import { revalidatePath } from "next/cache";
 
-type Language = "javascript" | "python" | "c" | "cpp" | "html";
+type Language = "cpp" | "c" | "javascript" | "python" | "java" | "html";
 
 export const toggleStarMarked = async (
   playgroundId: string,

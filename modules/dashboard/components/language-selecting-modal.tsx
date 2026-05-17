@@ -17,9 +17,10 @@ import {
   SiC,
   SiCplusplus,
   SiHtml5,
+  SiOpenjdk,
 } from "react-icons/si";
 
-type Language = "javascript" | "python" | "c" | "cpp" | "html";
+type Language = "javascript" | "python" | "c" | "cpp" | "java" | "html";
 
 type LanguageSelectionModalProps = {
   isOpen: boolean;
@@ -67,6 +68,13 @@ const languages: LanguageOption[] = [
     description: "Compile and run C++ programs",
     icon: <SiCplusplus size={22} />,
     tags: ["OOP", "Performance"],
+  },
+  {
+    id: "java",
+    name: "Java",
+    description: "Compile and run Java programs",
+    icon: <SiOpenjdk size={22} />,
+    tags: ["OOP", "Backend", "JVM"],
   },
   {
     id: "html",

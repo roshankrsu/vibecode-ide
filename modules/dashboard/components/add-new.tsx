@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { createPlayground } from "../actions";
 import { toast } from "sonner";
 
-type Language = "javascript" | "python" | "c" | "cpp" | "html";
+type Language = "javascript" | "python" | "c" | "cpp" | "java" | "html";
 
 const AddNewButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
