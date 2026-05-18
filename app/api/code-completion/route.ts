@@ -16,7 +16,6 @@ interface CodeSuggestionRequest {
 
 interface CodeContext {
   language: string;
-  framework: string;
   beforeContext: string;
   currentLine: string;
   afterContext: string;
@@ -60,7 +59,6 @@ export async function POST(request: NextRequest) {
       context,
       metadata: {
         language: context.language,
-        framework: context.framework,
         position: context.cursorPosition,
         generatedAt: new Date().toISOString(),
       },
@@ -96,7 +94,6 @@ function analyzeCodeContext(
 
   // Detect language and framework
   const language = detectLanguage(content, fileName);
-  const framework = detectFramework(content);
 
   // Analyze code patterns
   const isInFunction = detectInFunction(lines, line);
@@ -106,7 +103,6 @@ function analyzeCodeContext(
 
   return {
     language,
-    framework,
     beforeContext,
     currentLine,
     afterContext,
@@ -122,29 +118,23 @@ function analyzeCodeContext(
  * Build AI prompt based on context
  */
 function buildPrompt(context: CodeContext, suggestionType: string): string {
-  return `You are an expert code completion assistant. Generate a ${suggestionType} suggestion.
+  return `
+Autocomplete ${suggestionType} at cursor.
 
 Language: ${context.language}
-Framework: ${context.framework}
 
-Context:
+Code:
 ${context.beforeContext}
 ${context.currentLine.substring(0, context.cursorPosition.column)}|CURSOR|${context.currentLine.substring(context.cursorPosition.column)}
 ${context.afterContext}
 
-Analysis:
-- In Function: ${context.isInFunction}
-- In Class: ${context.isInClass}
-- After Comment: ${context.isAfterComment}
-- Incomplete Patterns: ${context.incompletePatterns.join(", ") || "None"}
-
-Instructions:
-1. Provide only the code that should be inserted at the cursor
-2. Maintain proper indentation and style
-3. Follow ${context.language} best practices
-4. Make the suggestion contextually appropriate
-
-Generate suggestion:`;
+Rules:
+- Insert ONLY code at cursor
+- Max 5 lines
+- No explanation
+- No markdown
+- Complete the immediate next logical code only
+`;
 }
 
 /**
@@ -153,23 +143,45 @@ Generate suggestion:`;
 async function generateSuggestion(prompt: string): Promise<string> {
   try {
     const completion = await client.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "llama-3.3-70b-versatile",
       messages: [
         {
           role: "system",
-          content:
-            "You are an expert AI code completion assistant. Return ONLY the code completion with no explanations, markdown, or extra text.",
+          content: `
+You are an IDE autocomplete engine.
+
+STRICT RULES:
+- Return ONLY code
+- No markdown
+- No explanations
+- No comments unless user is typing a comment
+- Maximum 5 lines
+- Continue existing code only
+- Do NOT rewrite full functions unless clearly incomplete
+- Match exact language syntax
+`,
         },
         {
           role: "user",
           content: prompt,
         },
       ],
-      temperature: 0.3,
-      max_tokens: 300,
+      temperature: 0.1,
+      max_tokens: 60,
     });
 
     let suggestion = completion.choices[0]?.message?.content?.trim() || "";
+
+    if (
+      !suggestion ||
+      suggestion.includes("```") ||
+      suggestion.includes("Here") ||
+      suggestion.includes("Explanation") ||
+      suggestion.includes("Sure") ||
+      suggestion.split("\n").length > 8
+    ) {
+      return "";
+    }
 
     // Remove markdown code blocks if present
     if (suggestion.includes("```")) {
@@ -185,7 +197,7 @@ async function generateSuggestion(prompt: string): Promise<string> {
   } catch (error) {
     console.error("AI generation error:", error);
 
-    return "// AI suggestion unavailable";
+    return "";
   }
 }
 
@@ -200,6 +212,8 @@ function detectLanguage(content: string, fileName?: string): string {
       jsx: "JavaScript",
       py: "Python",
       java: "Java",
+      cpp: "C++",
+      c: "C",
       go: "Go",
       rs: "Rust",
       php: "PHP",
@@ -210,29 +224,23 @@ function detectLanguage(content: string, fileName?: string): string {
   // Content-based detection
   if (content.includes("interface ") || content.includes(": string"))
     return "TypeScript";
-  if (content.includes("def ") || content.includes("import ")) return "Python";
+  if (content.includes("def ") || content.includes("print(")) return "Python";
+  if (content.includes("public class")) return "Java";
+  if (content.includes("#include <iostream>")) return "C++";
+  if (content.includes("#include <stdio.h>")) return "C";
   if (content.includes("func ") || content.includes("package ")) return "Go";
 
   return "JavaScript";
 }
 
-function detectFramework(content: string): string {
-  if (content.includes("import React") || content.includes("useState"))
-    return "React";
-  if (content.includes("import Vue") || content.includes("<template>"))
-    return "Vue";
-  if (content.includes("@angular/") || content.includes("@Component"))
-    return "Angular";
-  if (content.includes("next/") || content.includes("getServerSideProps"))
-    return "Next.js";
-
-  return "None";
-}
-
 function detectInFunction(lines: string[], currentLine: number): boolean {
   for (let i = currentLine - 1; i >= 0; i--) {
     const line = lines[i];
-    if (line?.match(/^\s*(function|def|const\s+\w+\s*=|let\s+\w+\s*=)/))
+    if (
+      line?.match(
+        /^\s*(function|def|const\s+\w+\s*=|let\s+\w+\s*=|public\s+.*\(|\w+\s+\w+\s*\()/,
+      )
+    )
       return true;
     if (line?.match(/^\s*}/)) break;
   }
@@ -266,12 +274,4 @@ function detectIncompletePatterns(line: string, column: number): string[] {
   if (/\.\s*$/.test(beforeCursor)) patterns.push("method-call");
 
   return patterns;
-}
-
-function getLastNonEmptyLine(lines: string[], currentLine: number): string {
-  for (let i = currentLine - 1; i >= 0; i--) {
-    const line = lines[i];
-    if (line.trim() !== "") return line;
-  }
-  return "";
 }

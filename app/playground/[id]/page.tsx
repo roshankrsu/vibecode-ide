@@ -75,6 +75,7 @@ const MainPlaygroundPage: React.FC = () => {
 
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
+  const [programInput, setProgramInput] = useState("");
 
   // Playground Data
   const { playgroundData, templateData, isLoading, error, saveTemplateData } =
@@ -323,6 +324,7 @@ const MainPlaygroundPage: React.FC = () => {
         body: JSON.stringify({
           code: activeFile.content,
           language,
+          input: programInput,
         }),
       });
 
@@ -450,7 +452,7 @@ const MainPlaygroundPage: React.FC = () => {
             <div className="flex flex-1 items-center gap-2">
               <div className="flex flex-col flex-1">
                 <h1 className="text-sm font-medium">
-                  {playgroundData?.name || "Online IDE"}
+                  {playgroundData?.title || "Online IDE"}
                 </h1>
 
                 <p className="text-xs text-muted-foreground">
@@ -486,23 +488,21 @@ const MainPlaygroundPage: React.FC = () => {
                       <Save className="h-4 w-4" /> All
                     </Button>
                   </TooltipTrigger>
-
                   <TooltipContent>Save All</TooltipContent>
+                </Tooltip>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        onClick={handleRunCode}
-                        disabled={!activeFile || isRunning}
-                      >
-                        <Play className="h-4 w-4" />
-                        {isRunning ? "Running..." : "Run"}
-                      </Button>
-                    </TooltipTrigger>
-
-                    <TooltipContent>Run Code</TooltipContent>
-                  </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      onClick={handleRunCode}
+                      disabled={!activeFile || isRunning}
+                    >
+                      <Play className="h-4 w-4 mr-1" />
+                      {isRunning ? "Running..." : "Run"}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Run Code</TooltipContent>
                 </Tooltip>
 
                 <ToggleAI
@@ -629,10 +629,27 @@ const MainPlaygroundPage: React.FC = () => {
                               title="HTML Preview"
                             />
                           ) : (
-                            <div className="h-full bg-black text-green-400 font-mono text-sm p-4 overflow-auto">
-                              {isRunning
-                                ? "Running..."
-                                : output || "Run your code to see output"}
+                            <div className="h-full flex flex-col bg-black text-green-400">
+                              <div className="p-3 border-b border-zinc-700 text-white font-medium">
+                                Terminal
+                              </div>
+
+                              <div className="flex-1 p-4 overflow-auto font-mono text-sm whitespace-pre-wrap">
+                                {isRunning
+                                  ? "Running..."
+                                  : output || "Run your code to see output"}
+                              </div>
+
+                              <div className="border-t border-zinc-700 p-3">
+                                <textarea
+                                  value={programInput}
+                                  onChange={(e) =>
+                                    setProgramInput(e.target.value)
+                                  }
+                                  placeholder="Enter program input..."
+                                  className="w-full h-24 bg-zinc-900 text-white p-2 rounded resize-none outline-none"
+                                />
+                              </div>
                             </div>
                           )}
                         </ResizablePanel>
