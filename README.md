@@ -1,87 +1,104 @@
-# 🧠 VibeCode IDE – AI-Powered Browser IDE
+# VibeCode IDE 🚀
 
-**VibeCode IDE** is a fullstack browser-based development environment built with **Next.js**, **Monaco Editor**, **Groq AI**, and **StackBlitz WebContainers**.
+An AI-powered browser-based IDE that delivers a lightweight VS Code–inspired coding experience directly in the browser.
 
-It delivers a lightweight VS Code–like experience directly in the browser with:
-- real-time code execution
-- AI-assisted development
-- multi-framework starter templates
-- integrated terminal
-- persistent playgrounds
-- AI chat & autocomplete
+Built with **Next.js**, **Monaco Editor**, **Groq AI**, and **MongoDB**, VibeCode IDE allows developers to write, run, and manage code projects with AI-assisted development tools.
+
+## Live Demo
+
+🌐 https://vibecode-ide.vercel.app
 
 ---
 
-## 🚀 Live Demo
+## Features
 
-Live App: https://vibecode-ide.vercel.app
+### AI-Powered Development
+- AI code autocomplete powered by **Groq**
+- AI coding assistant chat for debugging, explanations, and refactoring
+- Smart context-aware code suggestions
 
----
+### Browser IDE Experience
+- Monaco Editor with syntax highlighting and IntelliSense
+- Interactive file explorer with nested folder/file management
+- VS Code–inspired UI
+- Dark / Light theme support
+- Multi-tab file editing
 
-## 🚀 Features
+### Code Execution
+- Run JavaScript, Python, C, C++, Java, and HTML
+- Browser preview for HTML projects
+- Program stdin input support
+- Cloud code execution via external compiler API
 
-- 🔐 **Authentication with NextAuth/Auth.js** – Google & GitHub OAuth support.
-- 🎨 **Modern Developer UI** – Built with TailwindCSS & ShadCN UI.
-- 🌗 **Dark/Light Mode** – Seamlessly toggle between themes.
-- 🧱 **Multi-Framework Templates** – Supports React, Next.js, Express, Hono, Vue, and Angular.
-- 🗂️ **Custom File Explorer** – Interactive nested file/folder management system.
-- 🖊️ **Monaco Editor Integration** – Syntax highlighting, IntelliSense, and VS Code–like editing experience.
-- 💡 **AI-Powered Coding Assistance** – AI suggestions and AI chat powered by Groq-hosted LLMs.
-- ⚙️ **WebContainers Runtime** – Run fullstack applications directly in the browser.
-- 💻 **Integrated Terminal** – Interactive terminal experience powered by xterm.js.
-- 🤖 **AI Chat Assistant** – Ask questions, refactor code, explain files, and improve productivity.
-- 💾 **Persistent Playgrounds** – Save and manage coding workspaces with MongoDB.
-- 🚀 **Production Deployment** – Fully deployed on Vercel with cloud AI integration.
+### Project Management
+- Persistent playgrounds saved in MongoDB
+- Create, edit, rename, and manage projects
+- Starter templates for supported languages
 
----
+### Authentication
+- Google OAuth login
+- GitHub OAuth login
+- Secure authentication with **Auth.js / NextAuth**
 
-## 🧱 Tech Stack
-
-| Layer            | Technology               |
-| ---------------- | ------------------------ |
-| Framework        | Next.js 16 (App Router)  |
-| Language         | TypeScript               |
-| State Management | Zustand                  |
-| Styling          | TailwindCSS, ShadCN UI   |
-| Authentication   | NextAuth/Auth.js         |
-| Database         | MongoDB + Prisma         |
-| Editor           | Monaco Editor            |
-| Runtime          | StackBlitz WebContainers |
-| Terminal         | xterm.js                 |
-| AI Integration   | Groq API                 |
-| Hosting          | Vercel                   |
+### Deployment Ready
+- Production-ready architecture
+- Fully deployed on Vercel
+- Cloud AI integration
 
 ---
 
-## 🛠️ Getting Started
+## Tech Stack
 
-### 1. Clone the Repository
+| Category | Technology |
+|--------|------------|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| UI | Tailwind CSS, ShadCN UI |
+| State Management | Zustand |
+| Authentication | NextAuth / Auth.js |
+| Database | MongoDB + Prisma |
+| Code Editor | Monaco Editor |
+| AI | Groq API |
+| Code Execution | Online Compiler API |
+| Hosting | Vercel |
+
+---
+
+## Supported Languages
+
+- JavaScript
+- Python
+- C
+- C++
+- Java
+- HTML
+
+---
+
+## Getting Started
+
+### Clone Repository
 
 ```bash
 git clone https://github.com/roshankrsu/vibecode-ide.git
-
 cd vibecode-ide
 ```
 
----
-
-### 2. Install Dependencies
+### Install Dependencies
 
 ```bash
 npm install
 ```
 
----
+### Configure Environment Variables
 
-### 3. Configure Environment Variables
-
-Create a `.env.local` file:
+Create:
 
 ```bash
-cp .env.example .env.local
+.env.local
 ```
 
-Then configure the following variables:
+Add:
 
 ```env
 DATABASE_URL=
@@ -97,25 +114,29 @@ AUTH_GITHUB_SECRET=
 NEXTAUTH_URL=http://localhost:3000
 
 GROQ_API_KEY=
+
+ONLINE_COMPILER_API_KEY=
 ```
 
 ---
 
-### 4. Configure Groq API
+## Database Setup
 
-Create a Groq API key:
+Generate Prisma client:
 
-https://console.groq.com
+```bash
+npx prisma generate
+```
 
-Add it to your `.env.local`:
+Push schema:
 
-```env
-GROQ_API_KEY=
+```bash
+npx prisma db push
 ```
 
 ---
 
-### 5. Start Development Server
+## Run Development Server
 
 ```bash
 npm run dev
@@ -129,75 +150,70 @@ http://localhost:3000
 
 ---
 
-## ⚠️ WebContainers Requirement
-
-This project uses **StackBlitz WebContainers**, which require browser isolation headers:
-
-```txt
-Cross-Origin-Opener-Policy
-Cross-Origin-Embedder-Policy
-```
-
-These headers are already configured in `next.config.ts`.
-
----
-
-## 📁 Project Structure
-
-```txt
-.
-├── app/                      # App Router pages & API routes
-├── components/               # Shared UI components
-├── modules/                  # Feature-based modules
-├── lib/                      # Utilities and helpers
-├── public/                   # Static assets
-├── vibecode-starters/        # Starter templates
-├── prisma/                   # Prisma schema
-├── .env.example              # Environment variable template
-└── README.md
-```
-
----
-
-## 🎯 Keyboard Shortcuts
+## Keyboard Shortcuts
 
 | Shortcut | Action |
-|----------|--------|
-| `Ctrl + Space` | Trigger AI suggestions |
-| `Tab` | Accept AI suggestion |
+|---------|--------|
+| Ctrl + Space | Trigger AI autocomplete |
+| Tab | Accept AI suggestion |
+| Ctrl + S | Save file |
 
 ---
 
-## ✅ Roadmap
+## Project Structure
 
-- [x] Google & GitHub Auth via NextAuth
-- [x] Multiple stack templates
-- [x] Monaco Editor + AI
-- [x] WebContainers + terminal
-- [x] AI chat for code assistance
+```txt
+app/
+components/
+modules/
+lib/
+prisma/
+public/
+```
+
+---
+
+## Roadmap
+
 - [x] AI autocomplete
+- [x] AI chat assistant
+- [x] Multi-language code execution
+- [x] Monaco editor integration
 - [x] Persistent playgrounds
-- [x] Production deployment on Vercel
-- [ ] GitHub repo import/export
+- [x] Authentication
+- [x] Production deployment
+
+### Planned
+- [ ] GitHub repository import/export
 - [ ] Real-time collaboration
 - [ ] Multiplayer editing
 - [ ] One-click deployment
+- [ ] True interactive terminal execution
 
 ---
 
-## 📄 License
+## Why This Project?
 
-This project is licensed under the [MIT License](LICENSE).
+VibeCode IDE demonstrates building a production-grade browser IDE with:
+
+- AI-assisted development workflows
+- modern fullstack architecture
+- cloud-based code execution
+- scalable developer tooling
+
+---
+
+## License
+
+MIT License
 
 ---
 
-## 🙏 Acknowledgements
+## Acknowledgements
 
-- https://nextjs.org
-- https://webcontainers.io
-- https://microsoft.github.io/monaco-editor/
-- https://groq.com
-- https://xtermjs.org
-- https://authjs.dev
-
----
+- Next.js
+- Monaco Editor
+- Groq
+- Prisma
+- Auth.js
+- ShadCN UI
